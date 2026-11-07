@@ -1,0 +1,47 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      VSCE_PAT: ${{ secrets.VSCE_PAT }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Tag matches package version
+        run: test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
+      - name: Package extension
+        run: npx vsce package --out "dark-relief-${GITHUB_REF_NAME#v}.vsix"
+      - name: Write release notes
+        run: |
+          {
+            echo '## Highlights'
+            awk -v v="${GITHUB_REF_NAME#v}" '$0 ~ "^## " v " " {f=1; next} /^## /{f=0} f' CHANGELOG.md
+            echo
+            echo '## Install'
+            echo '- VS Code Marketplace: https://marketplace.visualstudio.com/items?itemName=asidko.dark-relief'
+            echo "- Quick Open (Ctrl/Cmd+P): \`ext install asidko.dark-relief\`"
+            echo "- Manual: download \`dark-relief-${GITHUB_REF_NAME#v}.vsix\` below, then \`code --install-extension dark-relief-${GITHUB_REF_NAME#v}.vsix\`"
+          } > notes.md
+      - name: Draft release, attach the package, publish
+        run: |
+          gh release create "$GITHUB_REF_NAME" --repo "${{ github.repository }}" --draft --title "Dark Relief $GITHUB_REF_NAME" --notes-file notes.md ./*.vsix
+          test "$(gh release view "$GITHUB_REF_NAME" --repo "${{ github.repository }}" --json assets --jq '.assets | length')" = 1
+          gh release edit "$GITHUB_REF_NAME" --repo "${{ github.repository }}" --draft=false
+      - name: Publish to VS Code Marketplace
+        if: env.VSCE_PAT != ''
+        run: npx vsce publish --packagePath ./*.vsix

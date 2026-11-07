@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Validate theme JSON
+        run: node -e "JSON.parse(require('fs').readFileSync('themes/dark-relief-color-theme.json', 'utf8'))"
+      - name: Package extension
+        run: npx vsce package --out dark-relief.vsix
+      - name: Check package contents
+        run: npx vsce ls | tee files.txt && grep -qx 'themes/dark-relief-color-theme.json' files.txt
