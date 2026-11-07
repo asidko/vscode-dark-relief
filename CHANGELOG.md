@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1 - 2026-11-07
+
+- New icon: a layered pastel crescent in the theme's colours.
+
 ## 1.0.0 - 2026-11-07
 
 - First release: the Dark+ workbench and scope coverage with a small, soft syntax palette.

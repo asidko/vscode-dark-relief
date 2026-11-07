@@ -15,7 +15,7 @@ Soft pastel syntax colours on the familiar Dark+ workbench.
 
 - **Marketplace (recommended):** search "Dark Relief" in Extensions
 - **Quick Open:** `ext install asidko.dark-relief`
-- **Manual:** `.vsix` from [Releases](https://github.com/asidko/vscode-dark-relief/releases), then `code --install-extension dark-relief-1.0.0.vsix`
+- **Manual:** `.vsix` from [Releases](https://github.com/asidko/vscode-dark-relief/releases), then `code --install-extension <file>.vsix`
 
 Then **Preferences: Color Theme** → **Dark Relief**.
 
